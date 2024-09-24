@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -16,10 +15,15 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+    protected $primaryKey = 'user_id';
+
     protected $fillable = [
         'name',
         'email',
         'password',
+        'address',
+        'birthdate',
+        'profile_photo',
     ];
 
     /**
@@ -33,15 +37,32 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast to native types.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+
+     // Orders (One-to-Many with foreign key user_id)
+    public function orders()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->hasMany(Order::class, 'user_id');
+    }
+
+    public function products_in_cart()
+    {
+        return $this->belongsToMany(Product::class, 'cart_entry' , 'user_id' , 'product_id')
+        ->withPivot('total_price');
+        ->withPivot('product_amount');
+        ->withTimestamps();
+    }
+
+    public function products_in_wish_list()
+    {
+        return $this->belongsToMany(Product::class, 'wish_list_entry' , 'user_id' , 'product_id')
+        ->withTimestamps();
     }
 }
